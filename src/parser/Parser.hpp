@@ -8,6 +8,7 @@
 #include "Program.hpp"
 #include "ReturnStatement.hpp"
 #include "Token.hpp"
+#include <functional>
 
 using namespace mirror;
 using namespace std;

@@ -15,8 +15,6 @@
 using namespace std;
 using namespace mirror;
 
-extern shared_ptr<Error> new_error(string format, ...);
-
 namespace mirror {
 
 class Evaluator {

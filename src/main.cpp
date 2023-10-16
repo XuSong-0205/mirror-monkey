@@ -15,9 +15,16 @@ using namespace mirror;
 using namespace std;
 
 int main(int argc, char *argv[]) {
-    cout << "Hello! This is the Mirror-Monkey programming language!" << endl;
-    cout << "Feel free to type in commands" << string(2, '\n');
 
     Repl repl;
-    repl.start();
+
+    if (argc == 1) {
+        cout << "Hello! This is the Mirror-Monkey programming language!" << endl;
+        cout << "Feel free to type in commands" << string(2, '\n');
+        repl.start();
+    }
+    else if (argc == 2) {
+        repl.exec(argv[1]);
+    }
+
 }

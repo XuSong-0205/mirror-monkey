@@ -5,3 +5,6 @@ build
 .projectile
 .gitignore
 .clang-format
+
+.vs
+.out

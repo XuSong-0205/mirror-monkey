@@ -1,0 +1,8 @@
+
+let f = fn(x) {
+   let result = x + 10;
+   return result;
+   return 10;
+};
+
+puts(f(10));

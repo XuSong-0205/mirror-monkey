@@ -37,6 +37,7 @@
 #include <cstddef>
 #include <iostream>
 #include <memory>
+#include <cstdarg>
 
 using namespace mirror;
 using namespace object;
@@ -45,42 +46,6 @@ using namespace std;
 using t_object_Boolean = object::Boolean;
 using t_ast_Boolean = ast::Boolean;
 
-shared_ptr<Error> new_error(string format, ...) {
-    auto ret = make_shared<Error>();
-
-    va_list argptr;
-    va_start(argptr, format.size());
-
-    string str = "";
-
-    for (int i = 0; i < format.size(); i++) {
-        auto c = format[i];
-        switch (c) {
-        case 'c': {
-            char c = (char)va_arg(argptr, int);
-            str += c;
-            break;
-        }
-        case 'd': {
-            int d = va_arg(argptr, int);
-            str += to_string(d);
-            break;
-        }
-        case 's': {
-            char *s = va_arg(argptr, char *);
-            str += s;
-            break;
-        }
-        }
-    }
-
-    va_end(argptr);
-
-
-    ret->m_message = str;
-
-    return ret;
-}
 
 shared_ptr<Object> Evaluator::eval(Node *node, Environment *env) {
 

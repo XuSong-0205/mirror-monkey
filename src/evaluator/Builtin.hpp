@@ -21,7 +21,7 @@ template <typename Ret, typename... Args>
 class FunctionCommon : public Any_Function, public std::function<Ret(Args...)> {
   public:
     template <typename T>
-    FunctionCommon(T &f) : std::function<Ret(Args...)>(f) {}
+    FunctionCommon(T &&f) : std::function<Ret(Args...)>(f) {}
 };
 
 class Builtin : public Object {

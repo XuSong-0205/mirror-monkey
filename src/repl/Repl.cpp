@@ -1,4 +1,5 @@
 #include "Repl.hpp"
+#include "Repl.hpp"
 #include "Environment.hpp"
 #include "Evaluator.hpp"
 #include "Lexer.hpp"
@@ -6,6 +7,7 @@
 #include <algorithm>
 #include <exception>
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -48,14 +50,44 @@ void Repl::start() {
     }
 }
 
+void mirror::Repl::exec(const char* file)
+{
+    std::ifstream ifile(file);
+    if (!ifile) {
+        std::cout << "file: " << file << " not found!\n";
+        return;
+    }
+
+    std::istreambuf_iterator<char> beg(ifile);
+    std::istreambuf_iterator<char> end;
+    std::string code(beg, end);
+    ifile.close();
+
+    Evaluator global_env;
+    auto env = make_shared<Environment>();
+
+    Lexer lexer(code);
+    Parser parser(lexer);
+    auto program = parser.parse_program();
+    if (parser.errors().size() != 0) {
+        print_parser_errors(parser.errors());
+        return;
+    }
+
+    auto evaluated = global_env.eval(program.get(), env.get());
+    if (evaluated) {
+        cout << evaluated->Inspect() << endl;
+    }
+}
+
 void print_anthor_name() {
     string name = R"(
 	########################
-	#â•­â”â”â•®â•±â•±â•±â•±â•±â•±â•±â•±â•­â•®        #
-	#â•°â”ƒâ”ƒâ•‹â”â”â”³â”³â•®â•­â”â”â•‹â•‹â”³â”³â”³â”³â”â”³â”³â•®#
-	#â•­â”ƒâ”ƒâ”«â”ƒâ”ƒâ”ƒâ”ƒâ”ƒâ”ƒâ”ƒâ”ƒâ”ƒâ”ƒâ•­â”«â•­â”«â•‹â”ƒâ•­â•¯#
-	#â•°â”â”â”»â”»â”»â•‹â•®â”ƒâ•°â”»â”»â”»â”»â•¯â•°â•¯â•°â”â”»â•¯ #
-	#â•±â•±â•±â•±â•±â•±â•°â”â•¯             #
+	#¨q©¥©¥¨r¨u¨u¨u¨u¨u¨u¨u¨u¨q¨r        #
+	#¨t©§©§©ï©¥©¥©×©×¨r¨q©¥©¥©ï©ï©×©×©×©×©¥©×©×¨r#
+	#¨q©§©§©Ï©§©§©§©§©§©§©§©§©§©§¨q©Ï¨q©Ï©ï©§¨q¨s#
+	#¨t©¥©¥©ß©ß©ß©ï¨r©§¨t©ß©ß©ß©ß¨s¨t¨s¨t©¥©ß¨s #
+	#¨u¨u¨u¨u¨u¨u¨t©¥¨s             #
 	########################
 )";
 
