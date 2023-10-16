@@ -8,7 +8,9 @@
 #include "Expression.hpp"
 #include "FunctionLiteral.hpp"
 #include "HashLiteral.hpp"
+#include "AssignExpression.hpp"
 #include "IfExpression.hpp"
+#include "ForExpression.hpp"
 #include "IndexExpression.hpp"
 #include "InfixExpression.hpp"
 #include "IntegerLiteral.hpp"
@@ -44,6 +46,8 @@ void Parser::init() {
                     std::bind(&Parser::parse_grouped_expression, this));
     register_prefix(TOKEN_TYPE::IF,
                     std::bind(&Parser::parse_if_expression, this));
+    register_prefix(TOKEN_TYPE::FOR,
+                    std::bind(&Parser::parse_for_expression, this));
     register_prefix(TOKEN_TYPE::FUNCTION,
                     std::bind(&Parser::parse_function_literal, this));
     register_prefix(TOKEN_TYPE::LBRACKET,
@@ -51,6 +55,8 @@ void Parser::init() {
     register_prefix(TOKEN_TYPE::LBRACE,
                     std::bind(&Parser::parse_hash_literal, this));
 
+    register_infix(TOKEN_TYPE::ASSIGN,
+                   std::bind(&Parser::parse_assign_expression, this, _1));
     register_infix(TOKEN_TYPE::PLUS,
                    std::bind(&Parser::parse_infix_expression, this, _1));
     register_infix(TOKEN_TYPE::MINUS,
@@ -283,6 +289,22 @@ Parser::parse_infix_expression(unique_ptr<Expression> left) {
     return expression;
 }
 
+unique_ptr<Expression> Parser::parse_assign_expression(unique_ptr<Expression> left) {
+    if (!cur_token_is(TOKEN_TYPE::ASSIGN)) {
+        return nullptr;
+    }
+
+    auto expression = make_unique<AssignExpression>(*m_cur_token);
+    if (auto cast_node = dynamic_cast<Identifier*>(left.get())) {
+        expression->m_name = make_unique<Identifier>(*cast_node);
+    }
+    next_token();
+
+    expression->m_value = parse_expression(PRECEDENCE::LOWEST);
+
+    return expression;
+}
+
 unique_ptr<Expression> Parser::parse_boolean() {
     return make_unique<Boolean>(*m_cur_token, cur_token_is(TOKEN_TYPE::TRUE_));
 }
@@ -357,6 +379,49 @@ unique_ptr<BlockStatement> Parser::parse_block_statement() {
     }
 
     return block;
+}
+
+unique_ptr<Expression> Parser::parse_for_expression() {
+    auto for_expr = make_unique<ForExpression>(*m_cur_token);
+
+    if (!expect_peek(TOKEN_TYPE::LPAREN)) {
+        return nullptr;
+    }
+    next_token();
+
+    if (!cur_token_is(TOKEN_TYPE::LET)) {
+        return nullptr;
+    }
+
+    for_expr->m_loop_var = parse_let_statement();
+    if (!for_expr->m_loop_var) {
+        return nullptr;
+    }
+    next_token();
+
+    for_expr->m_condition = parse_expression(PRECEDENCE::LOWEST);
+    if (!for_expr->m_condition) {
+        return nullptr;
+    }
+    next_token();
+    next_token();
+
+    for_expr->m_next_step = parse_expression(PRECEDENCE::LOWEST);
+    if (!for_expr->m_next_step) {
+        return nullptr;
+    }
+    next_token();
+
+
+    if (!cur_token_is(TOKEN_TYPE::RPAREN)) {
+        return nullptr;
+    }
+    next_token();
+
+    for_expr->m_body = parse_block_statement();
+
+
+    return for_expr;
 }
 
 unique_ptr<Expression> Parser::parse_function_literal() {

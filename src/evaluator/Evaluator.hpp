@@ -7,6 +7,7 @@
 #include "HashLiteral.hpp"
 #include "Identifier.hpp"
 #include "IfExpression.hpp"
+#include "ForExpression.hpp"
 #include "Node.hpp"
 #include "Object.hpp"
 #include "Program.hpp"
@@ -33,6 +34,7 @@ class Evaluator {
                                                      Object *right);
     shared_ptr<Object> native_bool_to_boolean_object(bool input);
     shared_ptr<Object> eval_if_expression(IfExpression *ie, Environment *env);
+    shared_ptr<Object> eval_for_expression(ForExpression* fe, Environment* env);
 
     bool is_truthy(Object *obj);
 

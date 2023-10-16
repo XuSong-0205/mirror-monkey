@@ -47,6 +47,7 @@ enum class TOKEN_TYPE {
     TRUE_,    // "TRUE"
     FALSE_,   // "FALSE"
     IF,       // "IF"
+    FOR,      // "FOR"
     ELSE,     // "ELSE"
     RETURN,   // "RETURN"
 };
@@ -90,6 +91,7 @@ const string TOKEN_TYPE_VALUE[] = {
     "TRUE_",    // "TRUE"
     "FALSE_",   // "FALSE"
     "IF",       // "IF"
+    "FOR",      // "FOR"
     "ELSE",     // "ELSE"
     "RETURN",   // "RETURN"
 };

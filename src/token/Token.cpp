@@ -12,7 +12,8 @@ map<string, TOKEN_TYPE> mirror::Token::m_keywords = {
     {"fn", TOKEN_TYPE::FUNCTION},  {"let", TOKEN_TYPE::LET},
     {"true", TOKEN_TYPE::TRUE_},   {"false", TOKEN_TYPE::FALSE_},
     {"if", TOKEN_TYPE::IF},        {"else", TOKEN_TYPE::ELSE},
-    {"return", TOKEN_TYPE::RETURN}};
+    {"for", TOKEN_TYPE::FOR},      {"return", TOKEN_TYPE::RETURN}
+};
 
 Token::Token(TOKEN_TYPE token_type, string literal)
     : m_type(token_type), m_literal(literal) {}

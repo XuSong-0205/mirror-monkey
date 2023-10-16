@@ -21,6 +21,7 @@
 #include "IfExpression.hpp"
 #include "IndexExpression.hpp"
 #include "InfixExpression.hpp"
+#include "AssignExpression.hpp"
 #include "Integer.hpp"
 #include "IntegerLiteral.hpp"
 #include "LetStatement.hpp"
@@ -50,7 +51,6 @@ using t_ast_Boolean = ast::Boolean;
 shared_ptr<Object> Evaluator::eval(Node *node, Environment *env) {
 
     if (auto cast_node = dynamic_cast<Program *>(node)) {
-
         return eval_program(*cast_node, *env);
     }
 
@@ -76,7 +76,6 @@ shared_ptr<Object> Evaluator::eval(Node *node, Environment *env) {
         if (is_error(val)) {
             return val;
         }
-
 
         env->set(cast_node->m_name->m_value, val);
     }
@@ -117,9 +116,21 @@ shared_ptr<Object> Evaluator::eval(Node *node, Environment *env) {
                                      right.get());
     }
 
-    if (auto cast_node = dynamic_cast<IfExpression *>(node)) {
+    if (auto cast_node = dynamic_cast<AssignExpression*>(node)) {
+        auto val = eval(cast_node->m_value.get(), env);
+        if (is_error(val)) {
+            return val;
+        }
 
+        env->set(cast_node->m_name->m_value, val);
+    }
+
+    if (auto cast_node = dynamic_cast<IfExpression *>(node)) {
         return eval_if_expression(cast_node, env);
+    }
+
+    if (auto cast_node = dynamic_cast<ForExpression*>(node)) {
+        return eval_for_expression(cast_node, env);
     }
 
     if (auto cast_node = dynamic_cast<Identifier *>(node)) {
@@ -149,7 +160,6 @@ shared_ptr<Object> Evaluator::eval(Node *node, Environment *env) {
     if (auto cast_node = dynamic_cast<ArrayLiteral *>(node)) {
 
         auto elements = eval_expressions(*(cast_node->m_elements), env);
-
         if (elements.size() == 1 && is_error(elements[0])) {
             return elements[0];
         }
@@ -172,7 +182,6 @@ shared_ptr<Object> Evaluator::eval(Node *node, Environment *env) {
     }
 
     if (auto cast_node = dynamic_cast<HashLiteral *>(node)) {
-
         return eval_hash_literal(cast_node, env);
     }
 
@@ -338,6 +347,34 @@ shared_ptr<Object> Evaluator::eval_if_expression(IfExpression *ie,
     } else {
 		return shared_ptr<Object>(make_shared<Null>());
     }
+}
+
+shared_ptr<Object> mirror::Evaluator::eval_for_expression(ForExpression* fe, Environment* env)
+{
+    eval(fe->m_loop_var.get(), env);
+
+    auto condition = eval(fe->m_condition.get(), env);
+    if (is_error(condition)) {
+        return condition;
+    }
+
+    while (is_truthy(condition.get())) {
+        auto result = eval(fe->m_body.get(), env);
+        if (result) {
+            if (result->type() == OBJECT_TYPE::RETURN_VALUE_OBJ ||
+                result->type() == OBJECT_TYPE::ERROR_OBJ) {
+                return result;
+            }
+        }
+
+        eval(fe->m_next_step.get(), env);
+        condition = eval(fe->m_condition.get(), env);
+        if (is_error(condition)) {
+            return condition;
+        }
+    }
+
+    return shared_ptr<Object>(make_shared<Null>());
 }
 
 bool Evaluator::is_error(shared_ptr<Object> obj) {

@@ -17,6 +17,7 @@ using namespace token;
 namespace mirror {
 enum class PRECEDENCE {
     LOWEST,
+    ASSIGN,      // =
     EQUALS,      // ==
     LESSGREATER, // > or <
     SUM,         // +
@@ -50,6 +51,7 @@ class Parser {
   public:
     using t_map_precedence = map<TOKEN_TYPE, PRECEDENCE>;
     const t_map_precedence c_precedences = {
+        {TOKEN_TYPE::ASSIGN, PRECEDENCE::ASSIGN},
         {TOKEN_TYPE::EQ, PRECEDENCE::EQUALS},
         {TOKEN_TYPE::NOT_EQ, PRECEDENCE::EQUALS},
         {TOKEN_TYPE::LT, PRECEDENCE::LESSGREATER},
@@ -94,11 +96,13 @@ class Parser {
     unique_ptr<Expression> parse_integer_literal();
 
     unique_ptr<Expression> parse_infix_expression(unique_ptr<Expression> exp);
+    unique_ptr<Expression> parse_assign_expression(unique_ptr<Expression> left);
     unique_ptr<Expression> parse_boolean();
     unique_ptr<Expression> parse_prefix_expression();
     unique_ptr<Expression> parse_grouped_expression();
     unique_ptr<Expression> parse_if_expression();
     unique_ptr<BlockStatement> parse_block_statement();
+    unique_ptr<Expression> parse_for_expression();
     unique_ptr<Expression> parse_function_literal();
     unique_ptr<vector<unique_ptr<Identifier>>> parse_function_parameters();
     unique_ptr<Expression> parse_call_expression(unique_ptr<Expression> exp);

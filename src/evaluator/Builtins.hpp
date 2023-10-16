@@ -194,8 +194,9 @@ inline void init_puts() {
 
     auto fn = make_shared<len_function>([](vector<shared_ptr<Object>> args) {
         for (int i = 0; i < args.size(); i++) {
-            cout << args[i]->Inspect() << endl;
+            cout << args[i]->Inspect();
         }
+        cout << endl;
 
         return shared_ptr<Object>(make_shared<Null>());
     });
