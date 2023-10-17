@@ -64,6 +64,9 @@ unique_ptr<Token> Lexer::next_token() {
     case '*':
         tok = make_unique<Token>(TOKEN_TYPE::ASTERISK, string(1, m_ch));
         break;
+    case '%':
+        tok = make_unique<Token>(TOKEN_TYPE::REM, string(1, m_ch));
+        break;
     case '<':
         tok = make_unique<Token>(TOKEN_TYPE::LT, string(1, m_ch));
         break;

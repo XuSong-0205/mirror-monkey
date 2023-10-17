@@ -65,6 +65,8 @@ void Parser::init() {
                    std::bind(&Parser::parse_infix_expression, this, _1));
     register_infix(TOKEN_TYPE::ASTERISK,
                    std::bind(&Parser::parse_infix_expression, this, _1));
+    register_infix(TOKEN_TYPE::REM,
+                   std::bind(&Parser::parse_infix_expression, this, _1));
     register_infix(TOKEN_TYPE::EQ,
                    std::bind(&Parser::parse_infix_expression, this, _1));
     register_infix(TOKEN_TYPE::NOT_EQ,

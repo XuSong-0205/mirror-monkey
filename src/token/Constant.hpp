@@ -23,6 +23,7 @@ enum class TOKEN_TYPE {
     BANG,     // "!"
     ASTERISK, // "*"
     SLASH,    // "/"
+    REM,      // "%"
 
     LT, // "<"
     GT, // ">"
@@ -67,6 +68,7 @@ const string TOKEN_TYPE_VALUE[] = {
     "BANG",     // "!"
     "ASTERISK", // "*"
     "SLASH",    // "/"
+    "REM",      // "%"
 
     "LT", // "<"
     "GT", // ">"

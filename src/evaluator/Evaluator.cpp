@@ -306,6 +306,10 @@ shared_ptr<Object> Evaluator::eval_integer_infix_expression(string op,
         return make_shared<Integer>(left_value / right_value);
     }
 
+    if (op == "%") {
+        return make_shared<Integer>(left_value % right_value);
+    }
+
     if (op == "<") {
         return native_bool_to_boolean_object(left_value < right_value);
     }

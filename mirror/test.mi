@@ -10,5 +10,7 @@ puts(f(10));
 
 for (let i = 0; i < 10; i = i + 1)
 {
-	puts("i = ", i);
+	if (i % 2 == 0) {
+		puts("i = ", i);
+	}
 }
