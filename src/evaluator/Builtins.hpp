@@ -22,12 +22,12 @@ using namespace mirror;
 // namespace mirror {
 extern map<string, shared_ptr<Builtin>> builtins;
 
+using builtin_function =
+FunctionCommon<shared_ptr<Object>, vector<shared_ptr<Object>>>;
+
 inline void init_len() {
 
-    using len_function =
-        FunctionCommon<shared_ptr<Object>, vector<shared_ptr<Object>>>;
-
-    auto fn = make_shared<len_function>([](vector<shared_ptr<Object>> args) {
+    auto fn = make_shared<builtin_function>([](vector<shared_ptr<Object>> args) {
         if (args.size() != 1) {
             return shared_ptr<Object>(
                 new_error("sds", R"(wrong number of arguments. got=)",
@@ -53,11 +53,8 @@ inline void init_len() {
 }
 
 inline void init_first() {
-    using len_function =
-        FunctionCommon<shared_ptr<Object>, vector<shared_ptr<Object>>>;
 
-    auto fn = make_shared<len_function>([](vector<shared_ptr<Object>> args) {
-
+    auto fn = make_shared<builtin_function>([](vector<shared_ptr<Object>> args) {
 
         if (args.size() != 1) {
             return shared_ptr<Object>(
@@ -86,10 +83,7 @@ inline void init_first() {
 
 inline void init_last() {
 
-    using len_function =
-        FunctionCommon<shared_ptr<Object>, vector<shared_ptr<Object>>>;
-
-    auto fn = make_shared<len_function>([](vector<shared_ptr<Object>> args) {
+    auto fn = make_shared<builtin_function>([](vector<shared_ptr<Object>> args) {
         if (args.size() != 1) {
             return shared_ptr<Object>(
                 new_error("sds", R"(wrong number of arguments. got=)",
@@ -115,10 +109,8 @@ inline void init_last() {
 }
 
 inline void init_rest() {
-    using len_function =
-        FunctionCommon<shared_ptr<Object>, vector<shared_ptr<Object>>>;
 
-    auto fn = make_shared<len_function>([](vector<shared_ptr<Object>> args) {
+    auto fn = make_shared<builtin_function>([](vector<shared_ptr<Object>> args) {
         if (args.size() != 1) {
             return shared_ptr<Object>(
                 new_error("sds", R"(wrong number of arguments. got=)",
@@ -151,10 +143,8 @@ inline void init_rest() {
 }
 
 inline void init_push() {
-    using len_function =
-        FunctionCommon<shared_ptr<Object>, vector<shared_ptr<Object>>>;
 
-    auto fn = make_shared<len_function>([](vector<shared_ptr<Object>> args) {
+    auto fn = make_shared<builtin_function>([](vector<shared_ptr<Object>> args) {
     
         if (args.size() != 2) {
             return shared_ptr<Object>(
@@ -173,13 +163,10 @@ inline void init_push() {
         auto length = arr->m_elements.size();
         vector<shared_ptr<Object>> new_elements;
 
-        
-
         for (int i = 0; i < length; i++) {
             new_elements.push_back(arr->m_elements[i]);
         }
     
-
         new_elements.push_back(shared_ptr<Object>(args[1])) ;
 
         return shared_ptr<Object>(make_shared<Array>(new_elements));
@@ -189,10 +176,8 @@ inline void init_push() {
 }
 
 inline void init_puts() {
-    using len_function =
-        FunctionCommon<shared_ptr<Object>, vector<shared_ptr<Object>>>;
 
-    auto fn = make_shared<len_function>([](vector<shared_ptr<Object>> args) {
+    auto fn = make_shared<builtin_function>([](vector<shared_ptr<Object>> args) {
         for (int i = 0; i < args.size(); i++) {
             cout << args[i]->Inspect();
         }
@@ -204,6 +189,19 @@ inline void init_puts() {
     builtins["puts"] = make_shared<Builtin>(fn);
 }
 
+inline void init_print() {
+
+    auto fn = make_shared<builtin_function>([](vector<shared_ptr<Object>> args) {
+        for (int i = 0; i < args.size(); i++) {
+            cout << args[i]->Inspect();
+        }
+
+        return shared_ptr<Object>(make_shared<Null>());
+    });
+
+    builtins["print"] = make_shared<Builtin>(fn);
+}
+
 inline void init_builtins() {
 
     init_len();
@@ -212,6 +210,7 @@ inline void init_builtins() {
     init_rest();
     init_push();
     init_puts();
+    init_print();
 }
 // }
 #endif /* BUILTINS_HPP */
