@@ -4,6 +4,7 @@
 #include "BlockStatement.hpp"
 #include "ExpressionStatement.hpp"
 #include "LetStatement.hpp"
+#include "FunctionStatement.hpp"
 #include "Lexer.hpp"
 #include "Program.hpp"
 #include "ReturnStatement.hpp"
@@ -74,6 +75,7 @@ class Parser {
 
     unique_ptr<Statement> parse_statement();
     unique_ptr<LetStatement> parse_let_statement();
+    unique_ptr<FunctionStatement> parse_function_statement();
     unique_ptr<ReturnStatement> parse_return_statement();
     unique_ptr<ExpressionStatement> parse_expression_statement();
 

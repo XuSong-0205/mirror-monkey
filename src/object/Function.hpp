@@ -16,12 +16,19 @@ namespace mirror {
 class Function : public Object {
   public:
     using t_params = shared_ptr<vector<unique_ptr<Identifier>>>;
+    shared_ptr<Identifier> m_name;
     t_params m_parameters;
     shared_ptr<BlockStatement> m_body;
     shared_ptr<Environment> m_env;
 
-    Function(t_params params, shared_ptr<BlockStatement> block, Environment *env) {
+    Function(shared_ptr<Identifier> name, t_params params, shared_ptr<BlockStatement> block, Environment* env) {
+        m_name = name;
+        m_parameters = params;
+        m_body = block;
+        m_env = env->get_shared();
+    };
 
+    Function(t_params params, shared_ptr<BlockStatement> block, Environment *env) {
         m_parameters = params;
         m_body = block;
 		m_env = env->get_shared();

@@ -113,13 +113,19 @@ unique_ptr<Statement> Parser::parse_statement() {
     switch (m_cur_token->m_type) {
     case TOKEN_TYPE::LET:
         return parse_let_statement();
-        break;
+
+    case TOKEN_TYPE::FUNCTION:
+        return parse_function_statement();
+
     case TOKEN_TYPE::RETURN:
         return parse_return_statement();
+        
+    case TOKEN_TYPE::SEMICOLON:
+        // empty statement
         break;
     default:
         return parse_expression_statement();
-        break;
+        
     }
     return nullptr;
 }
@@ -187,6 +193,37 @@ unique_ptr<LetStatement> Parser::parse_let_statement() {
         next_token();
 
     return stmt;
+}
+
+unique_ptr<FunctionStatement> mirror::Parser::parse_function_statement() {
+    auto func = make_unique<FunctionStatement>(*m_cur_token);
+
+    if (peek_token_is(TOKEN_TYPE::IDENT)) {
+        next_token();
+
+        if (auto name = parse_identifier()) {
+            func->m_name = make_shared<Identifier>(*dynamic_cast<Identifier*>(name.get()));
+        }
+    }
+
+    if (!expect_peek(TOKEN_TYPE::LPAREN)) {
+        return nullptr;
+    }
+
+    if (auto params = parse_function_parameters()) {
+        func->m_parameters = std::move(params);
+    }
+    else {
+        return nullptr;
+    }
+
+    if (!expect_peek(TOKEN_TYPE::LBRACE)) {
+        return nullptr;
+    }
+
+    func->m_body = parse_block_statement();
+
+    return func;
 }
 
 bool Parser::cur_token_is(TOKEN_TYPE t) { return m_cur_token->m_type == t; }
@@ -427,14 +464,14 @@ unique_ptr<Expression> Parser::parse_for_expression() {
 }
 
 unique_ptr<Expression> Parser::parse_function_literal() {
-    auto lit = make_unique<FunctionLiteral>(*m_cur_token);
+    auto func = make_unique<FunctionLiteral>(*m_cur_token);
 
     if (!expect_peek(TOKEN_TYPE::LPAREN)) {
         return nullptr;
     }
 
     if (auto params = parse_function_parameters()) {
-        lit->m_parameters = std::move(params);
+        func->m_parameters = std::move(params);
     } else {
         return nullptr;
     }
@@ -443,9 +480,9 @@ unique_ptr<Expression> Parser::parse_function_literal() {
         return nullptr;
     }
 
-    lit->m_body = parse_block_statement();
+    func->m_body = parse_block_statement();
 
-    return lit;
+    return func;
 }
 
 unique_ptr<vector<unique_ptr<Identifier>>> Parser::parse_function_parameters() {

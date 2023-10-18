@@ -13,6 +13,7 @@
 #include "ExpressionStatement.hpp"
 #include "Function.hpp"
 #include "FunctionLiteral.hpp"
+#include "FunctionStatement.hpp"
 #include "Hash.hpp"
 #include "HashKey.hpp"
 #include "HashLiteral.hpp"
@@ -78,6 +79,17 @@ shared_ptr<Object> Evaluator::eval(Node *node, Environment *env) {
         }
 
         env->set(cast_node->m_name->m_value, val);
+        return nullptr;
+    }
+
+    if (auto cast_node = dynamic_cast<FunctionStatement *>(node)) {
+        auto name = cast_node->m_name;
+        auto params = cast_node->m_parameters;
+        auto body = cast_node->m_body;
+        auto func = make_shared<Function>(name, params, body, env);
+
+        env->set(name->m_value, func);
+        return func;
     }
 
     if (auto cast_node = dynamic_cast<IntegerLiteral *>(node)) {
@@ -123,6 +135,7 @@ shared_ptr<Object> Evaluator::eval(Node *node, Environment *env) {
         }
 
         env->set(cast_node->m_name->m_value, val);
+        return val;
     }
 
     if (auto cast_node = dynamic_cast<IfExpression *>(node)) {

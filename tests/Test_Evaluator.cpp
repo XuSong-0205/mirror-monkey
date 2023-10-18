@@ -634,7 +634,7 @@ TEST_CASE("TestHashIndexExpressions") {
             auto integer = any_cast<int>(expected_value);
 
             test_integer_object(*evaluated, integer);
-        } catch (const std::bad_any_cast &e) {
+        } catch (const std::bad_any_cast &) {
             // std::cout << e.what() << '\n';
             test_null_object(evaluated.get());
         }
