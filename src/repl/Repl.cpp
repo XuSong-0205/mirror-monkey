@@ -74,10 +74,7 @@ void mirror::Repl::exec(const char* file)
         return;
     }
 
-    auto evaluated = global_env.eval(program.get(), env.get());
-    if (evaluated) {
-        cout << evaluated->Inspect() << endl;
-    }
+    global_env.eval(program.get(), env.get());
 }
 
 void print_anthor_name() {
