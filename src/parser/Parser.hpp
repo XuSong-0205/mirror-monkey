@@ -20,6 +20,8 @@ namespace mirror {
 enum class PRECEDENCE {
     LOWEST,
     ASSIGN,      // =
+    LOGICAL,     // && or ||
+    BIT,         // & or | or ^
     EQUALS,      // ==
     LESSGREATER, // > or <
     SUM,         // +
@@ -54,8 +56,15 @@ class Parser {
     using t_map_precedence = map<TOKEN_TYPE, PRECEDENCE>;
     const t_map_precedence c_precedences = {
         {TOKEN_TYPE::ASSIGN, PRECEDENCE::ASSIGN},
+        {TOKEN_TYPE::AND, PRECEDENCE::LOGICAL},
+        {TOKEN_TYPE::OR, PRECEDENCE::LOGICAL},
+        {TOKEN_TYPE::BIT_AND, PRECEDENCE::BIT},
+        {TOKEN_TYPE::BIT_OR, PRECEDENCE::BIT},
+        {TOKEN_TYPE::XOR, PRECEDENCE::BIT},
         {TOKEN_TYPE::EQ, PRECEDENCE::EQUALS},
         {TOKEN_TYPE::NOT_EQ, PRECEDENCE::EQUALS},
+        {TOKEN_TYPE::LT_EQ, PRECEDENCE::LESSGREATER},
+        {TOKEN_TYPE::GT_EQ, PRECEDENCE::LESSGREATER},
         {TOKEN_TYPE::LT, PRECEDENCE::LESSGREATER},
         {TOKEN_TYPE::GT, PRECEDENCE::LESSGREATER},
         {TOKEN_TYPE::PLUS, PRECEDENCE::SUM},

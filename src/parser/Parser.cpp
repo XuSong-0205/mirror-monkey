@@ -72,6 +72,21 @@ void Parser::init() {
                    std::bind(&Parser::parse_infix_expression, this, _1));
     register_infix(TOKEN_TYPE::GT,
                    std::bind(&Parser::parse_infix_expression, this, _1));
+    register_infix(TOKEN_TYPE::LT_EQ,
+                   std::bind(&Parser::parse_infix_expression, this, _1));
+    register_infix(TOKEN_TYPE::GT_EQ,
+                   std::bind(&Parser::parse_infix_expression, this, _1));
+    register_infix(TOKEN_TYPE::BIT_AND,
+                   std::bind(&Parser::parse_infix_expression, this, _1));
+    register_infix(TOKEN_TYPE::BIT_OR,
+                   std::bind(&Parser::parse_infix_expression, this, _1));
+    register_infix(TOKEN_TYPE::XOR,
+                   std::bind(&Parser::parse_infix_expression, this, _1));
+    register_infix(TOKEN_TYPE::AND,
+                   std::bind(&Parser::parse_infix_expression, this, _1));
+    register_infix(TOKEN_TYPE::OR,
+                   std::bind(&Parser::parse_infix_expression, this, _1));
+
 
     register_infix(TOKEN_TYPE::LPAREN,
                    std::bind(&Parser::parse_call_expression, this, _1));

@@ -68,10 +68,38 @@ unique_ptr<Token> Lexer::next_token() {
         tok = make_unique<Token>(TOKEN_TYPE::REM, string(1, m_ch));
         break;
     case '<':
-        tok = make_unique<Token>(TOKEN_TYPE::LT, string(1, m_ch));
+        if (peed_char() == '=') {
+            tok = make_unique<Token>(TOKEN_TYPE::LT_EQ, capture_char(2));
+        }
+        else {
+            tok = make_unique<Token>(TOKEN_TYPE::LT, string(1, m_ch));
+        }
         break;
     case '>':
-        tok = make_unique<Token>(TOKEN_TYPE::GT, string(1, m_ch));
+        if (peed_char() == '=') {
+            tok = make_unique<Token>(TOKEN_TYPE::GT_EQ, capture_char(2));
+        }
+        else {
+            tok = make_unique<Token>(TOKEN_TYPE::GT, string(1, m_ch));
+        }
+        break;
+    case '&':
+        if (peed_char() == '&') {
+            tok = make_unique<Token>(TOKEN_TYPE::AND, capture_char(2));
+        } else {
+            tok = make_unique<Token>(TOKEN_TYPE::BIT_AND, string(1, m_ch));
+        }
+        break;
+    case '|':
+        if (peed_char() == '|') {
+            tok = make_unique<Token>(TOKEN_TYPE::OR, capture_char(2));
+        }
+        else {
+            tok = make_unique<Token>(TOKEN_TYPE::BIT_OR, string(1, m_ch));
+        }
+        break;
+    case '^':
+        tok = make_unique<Token>(TOKEN_TYPE::XOR, string(1, m_ch));
         break;
     case ';':
         tok = make_unique<Token>(TOKEN_TYPE::SEMICOLON, string(1, m_ch));

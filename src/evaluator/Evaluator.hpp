@@ -29,6 +29,7 @@ class Evaluator {
     shared_ptr<Object> eval_bang_operator_expression(Object *right);
     shared_ptr<Object> eval_minus_prefix_operator_expression(Object *right);
     shared_ptr<Object> eval_infix_expression(string op, Object *left, Object *right);
+    shared_ptr<Object> eval_bool_infix_expression(string op, Object* left, Object* right);
     shared_ptr<Object> eval_integer_infix_expression(string op, Object *left, Object *right);
     shared_ptr<Object> native_bool_to_boolean_object(bool input);
     shared_ptr<Object> eval_if_expression(IfExpression *ie, Environment *env);

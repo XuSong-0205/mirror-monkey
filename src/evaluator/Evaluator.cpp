@@ -146,10 +146,6 @@ shared_ptr<Object> Evaluator::eval(Node *node, Environment *env) {
         return eval_if_expression(cast_node, env);
     }
 
-    //if (auto cast_node = dynamic_cast<ForExpression*>(node)) {
-    //    return eval_for_expression(cast_node, env);
-    //}
-
     if (auto cast_node = dynamic_cast<Identifier *>(node)) {
         return eval_identifier(cast_node, env);
     }
@@ -263,6 +259,11 @@ Evaluator::eval_minus_prefix_operator_expression(Object *right) {
 
 shared_ptr<Object> Evaluator::eval_infix_expression(string op, Object *left,
                                                     Object *right) {
+    if (left->type() == OBJECT_TYPE::BOOLEAN_OBJ &&
+        right->type() == OBJECT_TYPE::BOOLEAN_OBJ) {
+        return eval_bool_infix_expression(op, left, right);
+    }
+
     if (left->type() == OBJECT_TYPE::INTEGER_OBJ &&
         right->type() == OBJECT_TYPE::INTEGER_OBJ) {
         return eval_integer_infix_expression(op, left, right);
@@ -274,11 +275,8 @@ shared_ptr<Object> Evaluator::eval_infix_expression(string op, Object *left,
     }
 
     if (op == "==") {
-
         if (auto cast_left = static_cast<object::Boolean *>(left)) {
-
             auto cast_right = static_cast<object::Boolean *>(right);
-
             return native_bool_to_boolean_object(cast_left->m_value ==
                                                  cast_right->m_value);
         }
@@ -293,7 +291,6 @@ shared_ptr<Object> Evaluator::eval_infix_expression(string op, Object *left,
         auto err_str = Object::object_type_value(left->type()) + " " + op +
                        " " + Object::object_type_value(right->type());
 
-
         return new_error("ss", "type mismatch: ", err_str.c_str());
     }
 
@@ -302,15 +299,40 @@ shared_ptr<Object> Evaluator::eval_infix_expression(string op, Object *left,
     return new_error("ss", "unknown operator: ", err_str.c_str());
 }
 
+shared_ptr<Object> Evaluator::eval_bool_infix_expression(string op,
+                                                            Object* left,
+                                                            Object* right) {
+    auto left_value  = static_cast<Boolean*>(left)->m_value;
+    auto right_value = static_cast<Boolean*>(right)->m_value;
+
+    if (op == "==") {
+        return native_bool_to_boolean_object(left_value == right_value);
+    }
+
+    if (op == "!=") {
+        return native_bool_to_boolean_object(left_value != right_value);
+    }
+
+    if (op == "&&") {
+        return native_bool_to_boolean_object(left_value && right_value);
+    }
+
+    if (op == "||") {
+        return native_bool_to_boolean_object(left_value || right_value);
+    }
+ 
+}
+
 shared_ptr<Object> Evaluator::eval_integer_infix_expression(string op,
                                                             Object *left,
                                                             Object *right) {
-    auto left_value = static_cast<Integer *>(left)->m_value;
+    auto left_value  = static_cast<Integer *>(left)->m_value;
     auto right_value = static_cast<Integer *>(right)->m_value;
 
     if (op == "+") {
         return make_shared<Integer>(left_value + right_value);
     }
+
     if (op == "-") {
         return make_shared<Integer>(left_value - right_value);
     }
@@ -327,6 +349,18 @@ shared_ptr<Object> Evaluator::eval_integer_infix_expression(string op,
         return make_shared<Integer>(left_value % right_value);
     }
 
+    if (op == "&") {
+        return make_shared<Integer>(left_value & right_value);
+    }
+
+    if (op == "|") {
+        return make_shared<Integer>(left_value | right_value);
+    }
+
+    if (op == "^") {
+        return make_shared<Integer>(left_value ^ right_value);
+    }
+
     if (op == "<") {
         return native_bool_to_boolean_object(left_value < right_value);
     }
@@ -335,12 +369,28 @@ shared_ptr<Object> Evaluator::eval_integer_infix_expression(string op,
         return native_bool_to_boolean_object(left_value > right_value);
     }
 
+    if (op == "<=") {
+        return native_bool_to_boolean_object(left_value <= right_value);
+    }
+
+    if (op == ">=") {
+        return native_bool_to_boolean_object(left_value >= right_value);
+    }
+
     if (op == "==") {
         return native_bool_to_boolean_object(left_value == right_value);
     }
 
     if (op == "!=") {
         return native_bool_to_boolean_object(left_value != right_value);
+    }
+
+    if (op == "&&") {
+        return native_bool_to_boolean_object(left_value && right_value);
+    }
+
+    if (op == "||") {
+        return native_bool_to_boolean_object(left_value || right_value);
     }
 
     auto err_str = Object::object_type_value(left->type()) + " " + op + " " +
