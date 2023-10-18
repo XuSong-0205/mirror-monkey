@@ -59,7 +59,12 @@ unique_ptr<Token> Lexer::next_token() {
         }
         break;
     case '/':
-        tok = make_unique<Token>(TOKEN_TYPE::SLASH, string(1, m_ch));
+        if (peed_char() == '/') {
+            read_annotation();
+            tok = next_token();
+        } else {
+            tok = make_unique<Token>(TOKEN_TYPE::SLASH, string(1, m_ch));
+        }
         break;
     case '*':
         tok = make_unique<Token>(TOKEN_TYPE::ASTERISK, string(1, m_ch));
@@ -183,7 +188,7 @@ bool Lexer::is_digit(char ch) { return '0' <= ch && ch <= '9'; }
 string Lexer::read_identifier() {
     vector<char> v;
 
-    while (is_letter(m_ch)) {
+    while (is_letter(m_ch) || is_digit(m_ch)) {
         v.push_back(m_ch);
         read_char();
     }
@@ -258,4 +263,13 @@ string Lexer::read_string() {
     }
 
     return str;
+}
+
+void Lexer::read_annotation() {
+    read_char();
+    read_char();
+
+    while (m_ch != '\n') {
+        read_char();
+    }
 }

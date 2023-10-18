@@ -1,0 +1,21 @@
+
+
+
+// ¥Ú”° æ≈æ≈≥À∑®±Ì
+
+fn print_99() {
+	for (let i = 1; i < 10; i = i + 1) {
+		for (let j = 1; j <= i; j = j + 1) {
+			print(j, " * ", i, " = ", i * j, "  ");
+		}
+		print("\n");
+	}
+
+}
+
+
+fn main() {
+	print_99();
+}
+
+main();
