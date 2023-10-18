@@ -10,7 +10,6 @@
 #include "HashLiteral.hpp"
 #include "AssignExpression.hpp"
 #include "IfExpression.hpp"
-#include "ForExpression.hpp"
 #include "IndexExpression.hpp"
 #include "InfixExpression.hpp"
 #include "IntegerLiteral.hpp"
@@ -46,8 +45,6 @@ void Parser::init() {
                     std::bind(&Parser::parse_grouped_expression, this));
     register_prefix(TOKEN_TYPE::IF,
                     std::bind(&Parser::parse_if_expression, this));
-    register_prefix(TOKEN_TYPE::FOR,
-                    std::bind(&Parser::parse_for_expression, this));
     register_prefix(TOKEN_TYPE::FUNCTION,
                     std::bind(&Parser::parse_function_literal, this));
     register_prefix(TOKEN_TYPE::LBRACKET,
@@ -114,6 +111,9 @@ unique_ptr<Statement> Parser::parse_statement() {
     case TOKEN_TYPE::LET:
         return parse_let_statement();
 
+    case TOKEN_TYPE::FOR:
+        return parse_for_statement();
+
     case TOKEN_TYPE::FUNCTION:
         return parse_function_statement();
 
@@ -123,9 +123,9 @@ unique_ptr<Statement> Parser::parse_statement() {
     case TOKEN_TYPE::SEMICOLON:
         // empty statement
         break;
+
     default:
         return parse_expression_statement();
-        
     }
     return nullptr;
 }
@@ -193,6 +193,49 @@ unique_ptr<LetStatement> Parser::parse_let_statement() {
         next_token();
 
     return stmt;
+}
+
+unique_ptr<ForStatement> mirror::Parser::parse_for_statement() {
+    auto for_state = make_unique<ForStatement>(*m_cur_token);
+
+    if (!expect_peek(TOKEN_TYPE::LPAREN)) {
+        return nullptr;
+    }
+    next_token();
+
+    if (!cur_token_is(TOKEN_TYPE::LET)) {
+        return nullptr;
+    }
+
+    for_state->m_loop_var = parse_let_statement();
+    if (!for_state->m_loop_var) {
+        return nullptr;
+    }
+    next_token();
+
+    for_state->m_condition = parse_expression(PRECEDENCE::LOWEST);
+    if (!for_state->m_condition) {
+        return nullptr;
+    }
+    next_token();
+    next_token();
+
+    for_state->m_next_step = parse_expression(PRECEDENCE::LOWEST);
+    if (!for_state->m_next_step) {
+        return nullptr;
+    }
+    next_token();
+
+
+    if (!cur_token_is(TOKEN_TYPE::RPAREN)) {
+        return nullptr;
+    }
+    next_token();
+
+    for_state->m_body = parse_block_statement();
+
+
+    return for_state;
 }
 
 unique_ptr<FunctionStatement> mirror::Parser::parse_function_statement() {
@@ -418,49 +461,6 @@ unique_ptr<BlockStatement> Parser::parse_block_statement() {
     }
 
     return block;
-}
-
-unique_ptr<Expression> Parser::parse_for_expression() {
-    auto for_expr = make_unique<ForExpression>(*m_cur_token);
-
-    if (!expect_peek(TOKEN_TYPE::LPAREN)) {
-        return nullptr;
-    }
-    next_token();
-
-    if (!cur_token_is(TOKEN_TYPE::LET)) {
-        return nullptr;
-    }
-
-    for_expr->m_loop_var = parse_let_statement();
-    if (!for_expr->m_loop_var) {
-        return nullptr;
-    }
-    next_token();
-
-    for_expr->m_condition = parse_expression(PRECEDENCE::LOWEST);
-    if (!for_expr->m_condition) {
-        return nullptr;
-    }
-    next_token();
-    next_token();
-
-    for_expr->m_next_step = parse_expression(PRECEDENCE::LOWEST);
-    if (!for_expr->m_next_step) {
-        return nullptr;
-    }
-    next_token();
-
-
-    if (!cur_token_is(TOKEN_TYPE::RPAREN)) {
-        return nullptr;
-    }
-    next_token();
-
-    for_expr->m_body = parse_block_statement();
-
-
-    return for_expr;
 }
 
 unique_ptr<Expression> Parser::parse_function_literal() {

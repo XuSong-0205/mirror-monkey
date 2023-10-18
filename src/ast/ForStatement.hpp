@@ -1,13 +1,13 @@
-#ifndef FOREXPRESSION_HPP
-#define FOREXPRESSION_HPP
+#ifndef FORSTATEMENT_HPP
+#define FORSTATEMENT_HPP
 
 #include "BlockStatement.hpp"
-#include "Expression.hpp"
+#include "Statement.hpp"
 #include "Token.hpp"
 
 using namespace std;
 namespace mirror {
-    class ForExpression : public Expression {
+    class ForStatement : public Statement {
     public:
         unique_ptr<Token> m_token; // The 'for' token
         unique_ptr<LetStatement> m_loop_var;
@@ -16,7 +16,7 @@ namespace mirror {
         unique_ptr<BlockStatement> m_body;
 
     public:
-        ForExpression(Token& token) : m_token(new Token(token)) {}
+        ForStatement(Token& token) : m_token(new Token(token)) {}
 
     public:
         string token_literal() { return m_token->m_literal; }
@@ -37,4 +37,4 @@ namespace mirror {
         }
     };
 }
-#endif /* FOREXPRESSION_HPP */
+#endif /* FORSTATEMENT_HPP */

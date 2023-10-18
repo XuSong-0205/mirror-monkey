@@ -4,6 +4,7 @@
 #include "BlockStatement.hpp"
 #include "ExpressionStatement.hpp"
 #include "LetStatement.hpp"
+#include "ForStatement.hpp"
 #include "FunctionStatement.hpp"
 #include "Lexer.hpp"
 #include "Program.hpp"
@@ -75,6 +76,7 @@ class Parser {
 
     unique_ptr<Statement> parse_statement();
     unique_ptr<LetStatement> parse_let_statement();
+    unique_ptr<ForStatement> parse_for_statement();
     unique_ptr<FunctionStatement> parse_function_statement();
     unique_ptr<ReturnStatement> parse_return_statement();
     unique_ptr<ExpressionStatement> parse_expression_statement();
@@ -105,7 +107,6 @@ class Parser {
     unique_ptr<Expression> parse_grouped_expression();
     unique_ptr<Expression> parse_if_expression();
     unique_ptr<BlockStatement> parse_block_statement();
-    unique_ptr<Expression> parse_for_expression();
     unique_ptr<Expression> parse_function_literal();
     unique_ptr<vector<unique_ptr<Identifier>>> parse_function_parameters();
     unique_ptr<Expression> parse_call_expression(unique_ptr<Expression> exp);

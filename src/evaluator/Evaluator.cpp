@@ -82,6 +82,10 @@ shared_ptr<Object> Evaluator::eval(Node *node, Environment *env) {
         return nullptr;
     }
 
+    if (auto cast_node = dynamic_cast<ForStatement *>(node)) {
+        return eval_for_statement(cast_node, env);
+    }
+
     if (auto cast_node = dynamic_cast<FunctionStatement *>(node)) {
         auto name = cast_node->m_name;
         auto params = cast_node->m_parameters;
@@ -142,9 +146,9 @@ shared_ptr<Object> Evaluator::eval(Node *node, Environment *env) {
         return eval_if_expression(cast_node, env);
     }
 
-    if (auto cast_node = dynamic_cast<ForExpression*>(node)) {
-        return eval_for_expression(cast_node, env);
-    }
+    //if (auto cast_node = dynamic_cast<ForExpression*>(node)) {
+    //    return eval_for_expression(cast_node, env);
+    //}
 
     if (auto cast_node = dynamic_cast<Identifier *>(node)) {
         return eval_identifier(cast_node, env);
@@ -366,34 +370,6 @@ shared_ptr<Object> Evaluator::eval_if_expression(IfExpression *ie,
     }
 }
 
-shared_ptr<Object> mirror::Evaluator::eval_for_expression(ForExpression* fe, Environment* env)
-{
-    eval(fe->m_loop_var.get(), env);
-
-    auto condition = eval(fe->m_condition.get(), env);
-    if (is_error(condition)) {
-        return condition;
-    }
-
-    while (is_truthy(condition.get())) {
-        auto result = eval(fe->m_body.get(), env);
-        if (result) {
-            if (result->type() == OBJECT_TYPE::RETURN_VALUE_OBJ ||
-                result->type() == OBJECT_TYPE::ERROR_OBJ) {
-                return result;
-            }
-        }
-
-        eval(fe->m_next_step.get(), env);
-        condition = eval(fe->m_condition.get(), env);
-        if (is_error(condition)) {
-            return condition;
-        }
-    }
-
-    return shared_ptr<Object>(make_shared<Null>());
-}
-
 bool Evaluator::is_error(shared_ptr<Object> obj) {
     if (obj != nullptr) {
         return obj->type() == OBJECT_TYPE::ERROR_OBJ;
@@ -413,6 +389,33 @@ bool Evaluator::is_truthy(Object *obj) {
     }
 
     return true;
+}
+
+shared_ptr<Object> Evaluator::eval_for_statement(ForStatement* fs, Environment* env) {
+    eval(fs->m_loop_var.get(), env);
+
+    auto condition = eval(fs->m_condition.get(), env);
+    if (is_error(condition)) {
+        return condition;
+    }
+
+    while (is_truthy(condition.get())) {
+        auto result = eval(fs->m_body.get(), env);
+        if (result) {
+            if (result->type() == OBJECT_TYPE::RETURN_VALUE_OBJ ||
+                result->type() == OBJECT_TYPE::ERROR_OBJ) {
+                return result;
+            }
+        }
+
+        eval(fs->m_next_step.get(), env);
+        condition = eval(fs->m_condition.get(), env);
+        if (is_error(condition)) {
+            return condition;
+        }
+    }
+
+    return shared_ptr<Object>(make_shared<Null>());
 }
 
 shared_ptr<Object> Evaluator::eval_block_statement(BlockStatement *block,
