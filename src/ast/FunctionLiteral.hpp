@@ -14,9 +14,6 @@ namespace mirror {
 class FunctionLiteral : public Expression {
   public:
     unique_ptr<Token> m_token;
-    // unique_ptr<vector<unique_ptr<Identifier>>> m_parameters;
-    // unique_ptr<BlockStatement> m_body;
-
     shared_ptr<vector<unique_ptr<Identifier>>> m_parameters;
     shared_ptr<BlockStatement> m_body;
 

@@ -59,16 +59,52 @@ unique_ptr<Token> Lexer::next_token() {
         }
         break;
     case '/':
-        tok = make_unique<Token>(TOKEN_TYPE::SLASH, string(1, m_ch));
+        if (peed_char() == '/') {
+            read_annotation();
+            tok = next_token();
+        } else {
+            tok = make_unique<Token>(TOKEN_TYPE::SLASH, string(1, m_ch));
+        }
         break;
     case '*':
         tok = make_unique<Token>(TOKEN_TYPE::ASTERISK, string(1, m_ch));
         break;
+    case '%':
+        tok = make_unique<Token>(TOKEN_TYPE::REM, string(1, m_ch));
+        break;
     case '<':
-        tok = make_unique<Token>(TOKEN_TYPE::LT, string(1, m_ch));
+        if (peed_char() == '=') {
+            tok = make_unique<Token>(TOKEN_TYPE::LT_EQ, capture_char(2));
+        }
+        else {
+            tok = make_unique<Token>(TOKEN_TYPE::LT, string(1, m_ch));
+        }
         break;
     case '>':
-        tok = make_unique<Token>(TOKEN_TYPE::GT, string(1, m_ch));
+        if (peed_char() == '=') {
+            tok = make_unique<Token>(TOKEN_TYPE::GT_EQ, capture_char(2));
+        }
+        else {
+            tok = make_unique<Token>(TOKEN_TYPE::GT, string(1, m_ch));
+        }
+        break;
+    case '&':
+        if (peed_char() == '&') {
+            tok = make_unique<Token>(TOKEN_TYPE::AND, capture_char(2));
+        } else {
+            tok = make_unique<Token>(TOKEN_TYPE::BIT_AND, string(1, m_ch));
+        }
+        break;
+    case '|':
+        if (peed_char() == '|') {
+            tok = make_unique<Token>(TOKEN_TYPE::OR, capture_char(2));
+        }
+        else {
+            tok = make_unique<Token>(TOKEN_TYPE::BIT_OR, string(1, m_ch));
+        }
+        break;
+    case '^':
+        tok = make_unique<Token>(TOKEN_TYPE::XOR, string(1, m_ch));
         break;
     case ';':
         tok = make_unique<Token>(TOKEN_TYPE::SEMICOLON, string(1, m_ch));
@@ -152,7 +188,7 @@ bool Lexer::is_digit(char ch) { return '0' <= ch && ch <= '9'; }
 string Lexer::read_identifier() {
     vector<char> v;
 
-    while (is_letter(m_ch)) {
+    while (is_letter(m_ch) || is_digit(m_ch)) {
         v.push_back(m_ch);
         read_char();
     }
@@ -171,18 +207,69 @@ string Lexer::read_number() {
 }
 
 string Lexer::read_string() {
-    // a different implementation , not like read_number, ugly
-    auto position = m_position + 1;
+    // a different implementation , not like read_number, ugly;
+    std::string str;
+
     for (int i = 0; i < 20; i++) {
         read_char();
+        switch (m_ch)
+        {
+        case '"':
+        case 0:
+            return str;
 
-        if (m_ch == '"' || m_ch == 0) {
+        case '\\':
+            switch (peed_char())
+            {
+            case 'a':
+                read_char(); str += '\a'; break;
+
+            case 'b':
+                read_char(); str += '\b'; break;
+
+            case 'f':
+                read_char(); str += '\f'; break;
+
+            case 'n':
+                read_char(); str += '\n'; break;
+
+            case 'r':
+                read_char(); str += '\r'; break;
+
+            case 't':
+                read_char(); str += '\t'; break;
+
+            case 'v':
+                read_char(); str += '\v'; break;
+
+            case '\\':
+                read_char(); str += '\\'; break;
+
+            case '\'':
+                read_char(); str += '\''; break;
+
+            case '\"':
+                read_char(); str += '\"'; break;
+
+            default:
+                str += m_ch; break;
+            }
             break;
-        }
-    }
-    auto begin = m_input.begin();
-    vector<char> ret;
-    copy(begin + position, begin + m_position, std::back_inserter(ret));
 
-    return string(ret.begin(), ret.end());
+        default:
+            str += m_ch; break;
+        }
+
+    }
+
+    return str;
+}
+
+void Lexer::read_annotation() {
+    read_char();
+    read_char();
+
+    while (m_ch != '\n') {
+        read_char();
+    }
 }

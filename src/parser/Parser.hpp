@@ -4,6 +4,8 @@
 #include "BlockStatement.hpp"
 #include "ExpressionStatement.hpp"
 #include "LetStatement.hpp"
+#include "ForStatement.hpp"
+#include "FunctionStatement.hpp"
 #include "Lexer.hpp"
 #include "Program.hpp"
 #include "ReturnStatement.hpp"
@@ -17,6 +19,9 @@ using namespace token;
 namespace mirror {
 enum class PRECEDENCE {
     LOWEST,
+    ASSIGN,      // =
+    LOGICAL,     // && or ||
+    BIT,         // & or | or ^
     EQUALS,      // ==
     LESSGREATER, // > or <
     SUM,         // +
@@ -50,14 +55,23 @@ class Parser {
   public:
     using t_map_precedence = map<TOKEN_TYPE, PRECEDENCE>;
     const t_map_precedence c_precedences = {
+        {TOKEN_TYPE::ASSIGN, PRECEDENCE::ASSIGN},
+        {TOKEN_TYPE::AND, PRECEDENCE::LOGICAL},
+        {TOKEN_TYPE::OR, PRECEDENCE::LOGICAL},
+        {TOKEN_TYPE::BIT_AND, PRECEDENCE::BIT},
+        {TOKEN_TYPE::BIT_OR, PRECEDENCE::BIT},
+        {TOKEN_TYPE::XOR, PRECEDENCE::BIT},
         {TOKEN_TYPE::EQ, PRECEDENCE::EQUALS},
         {TOKEN_TYPE::NOT_EQ, PRECEDENCE::EQUALS},
+        {TOKEN_TYPE::LT_EQ, PRECEDENCE::LESSGREATER},
+        {TOKEN_TYPE::GT_EQ, PRECEDENCE::LESSGREATER},
         {TOKEN_TYPE::LT, PRECEDENCE::LESSGREATER},
         {TOKEN_TYPE::GT, PRECEDENCE::LESSGREATER},
         {TOKEN_TYPE::PLUS, PRECEDENCE::SUM},
         {TOKEN_TYPE::MINUS, PRECEDENCE::SUM},
         {TOKEN_TYPE::SLASH, PRECEDENCE::PRODUCT},
         {TOKEN_TYPE::ASTERISK, PRECEDENCE::PRODUCT},
+        {TOKEN_TYPE::REM, PRECEDENCE::PRODUCT},
         {TOKEN_TYPE::LPAREN, PRECEDENCE::CALL},
         {TOKEN_TYPE::LBRACKET, PRECEDENCE::INDEX},
     };
@@ -71,6 +85,8 @@ class Parser {
 
     unique_ptr<Statement> parse_statement();
     unique_ptr<LetStatement> parse_let_statement();
+    unique_ptr<ForStatement> parse_for_statement();
+    unique_ptr<FunctionStatement> parse_function_statement();
     unique_ptr<ReturnStatement> parse_return_statement();
     unique_ptr<ExpressionStatement> parse_expression_statement();
 
@@ -94,6 +110,7 @@ class Parser {
     unique_ptr<Expression> parse_integer_literal();
 
     unique_ptr<Expression> parse_infix_expression(unique_ptr<Expression> exp);
+    unique_ptr<Expression> parse_assign_expression(unique_ptr<Expression> left);
     unique_ptr<Expression> parse_boolean();
     unique_ptr<Expression> parse_prefix_expression();
     unique_ptr<Expression> parse_grouped_expression();

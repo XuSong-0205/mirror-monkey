@@ -34,6 +34,7 @@ public:
 	string read_identifier();
 	string read_number();
 	string read_string();
+	void read_annotation();
 };
 }
 #endif /* LEXER_HPP */

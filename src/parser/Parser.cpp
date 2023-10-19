@@ -8,6 +8,7 @@
 #include "Expression.hpp"
 #include "FunctionLiteral.hpp"
 #include "HashLiteral.hpp"
+#include "AssignExpression.hpp"
 #include "IfExpression.hpp"
 #include "IndexExpression.hpp"
 #include "InfixExpression.hpp"
@@ -51,6 +52,8 @@ void Parser::init() {
     register_prefix(TOKEN_TYPE::LBRACE,
                     std::bind(&Parser::parse_hash_literal, this));
 
+    register_infix(TOKEN_TYPE::ASSIGN,
+                   std::bind(&Parser::parse_assign_expression, this, _1));
     register_infix(TOKEN_TYPE::PLUS,
                    std::bind(&Parser::parse_infix_expression, this, _1));
     register_infix(TOKEN_TYPE::MINUS,
@@ -58,6 +61,8 @@ void Parser::init() {
     register_infix(TOKEN_TYPE::SLASH,
                    std::bind(&Parser::parse_infix_expression, this, _1));
     register_infix(TOKEN_TYPE::ASTERISK,
+                   std::bind(&Parser::parse_infix_expression, this, _1));
+    register_infix(TOKEN_TYPE::REM,
                    std::bind(&Parser::parse_infix_expression, this, _1));
     register_infix(TOKEN_TYPE::EQ,
                    std::bind(&Parser::parse_infix_expression, this, _1));
@@ -67,6 +72,21 @@ void Parser::init() {
                    std::bind(&Parser::parse_infix_expression, this, _1));
     register_infix(TOKEN_TYPE::GT,
                    std::bind(&Parser::parse_infix_expression, this, _1));
+    register_infix(TOKEN_TYPE::LT_EQ,
+                   std::bind(&Parser::parse_infix_expression, this, _1));
+    register_infix(TOKEN_TYPE::GT_EQ,
+                   std::bind(&Parser::parse_infix_expression, this, _1));
+    register_infix(TOKEN_TYPE::BIT_AND,
+                   std::bind(&Parser::parse_infix_expression, this, _1));
+    register_infix(TOKEN_TYPE::BIT_OR,
+                   std::bind(&Parser::parse_infix_expression, this, _1));
+    register_infix(TOKEN_TYPE::XOR,
+                   std::bind(&Parser::parse_infix_expression, this, _1));
+    register_infix(TOKEN_TYPE::AND,
+                   std::bind(&Parser::parse_infix_expression, this, _1));
+    register_infix(TOKEN_TYPE::OR,
+                   std::bind(&Parser::parse_infix_expression, this, _1));
+
 
     register_infix(TOKEN_TYPE::LPAREN,
                    std::bind(&Parser::parse_call_expression, this, _1));
@@ -105,13 +125,22 @@ unique_ptr<Statement> Parser::parse_statement() {
     switch (m_cur_token->m_type) {
     case TOKEN_TYPE::LET:
         return parse_let_statement();
-        break;
+
+    case TOKEN_TYPE::FOR:
+        return parse_for_statement();
+
+    case TOKEN_TYPE::FUNCTION:
+        return parse_function_statement();
+
     case TOKEN_TYPE::RETURN:
         return parse_return_statement();
+        
+    case TOKEN_TYPE::SEMICOLON:
+        // empty statement
         break;
+
     default:
         return parse_expression_statement();
-        break;
     }
     return nullptr;
 }
@@ -179,6 +208,80 @@ unique_ptr<LetStatement> Parser::parse_let_statement() {
         next_token();
 
     return stmt;
+}
+
+unique_ptr<ForStatement> mirror::Parser::parse_for_statement() {
+    auto for_state = make_unique<ForStatement>(*m_cur_token);
+
+    if (!expect_peek(TOKEN_TYPE::LPAREN)) {
+        return nullptr;
+    }
+    next_token();
+
+    if (!cur_token_is(TOKEN_TYPE::LET)) {
+        return nullptr;
+    }
+
+    for_state->m_loop_var = parse_let_statement();
+    if (!for_state->m_loop_var) {
+        return nullptr;
+    }
+    next_token();
+
+    for_state->m_condition = parse_expression(PRECEDENCE::LOWEST);
+    if (!for_state->m_condition) {
+        return nullptr;
+    }
+    next_token();
+    next_token();
+
+    for_state->m_next_step = parse_expression(PRECEDENCE::LOWEST);
+    if (!for_state->m_next_step) {
+        return nullptr;
+    }
+    next_token();
+
+
+    if (!cur_token_is(TOKEN_TYPE::RPAREN)) {
+        return nullptr;
+    }
+    next_token();
+
+    for_state->m_body = parse_block_statement();
+
+
+    return for_state;
+}
+
+unique_ptr<FunctionStatement> mirror::Parser::parse_function_statement() {
+    auto func = make_unique<FunctionStatement>(*m_cur_token);
+
+    if (peek_token_is(TOKEN_TYPE::IDENT)) {
+        next_token();
+
+        if (auto name = parse_identifier()) {
+            func->m_name = make_shared<Identifier>(*dynamic_cast<Identifier*>(name.get()));
+        }
+    }
+
+    if (!expect_peek(TOKEN_TYPE::LPAREN)) {
+        return nullptr;
+    }
+
+    if (auto params = parse_function_parameters()) {
+        func->m_parameters = std::move(params);
+    }
+    else {
+        return nullptr;
+    }
+
+    if (!expect_peek(TOKEN_TYPE::LBRACE)) {
+        return nullptr;
+    }
+
+    func->m_body = parse_block_statement();
+
+    return func;
 }
 
 bool Parser::cur_token_is(TOKEN_TYPE t) { return m_cur_token->m_type == t; }
@@ -283,6 +386,22 @@ Parser::parse_infix_expression(unique_ptr<Expression> left) {
     return expression;
 }
 
+unique_ptr<Expression> Parser::parse_assign_expression(unique_ptr<Expression> left) {
+    if (!cur_token_is(TOKEN_TYPE::ASSIGN)) {
+        return nullptr;
+    }
+
+    auto expression = make_unique<AssignExpression>(*m_cur_token);
+    if (auto cast_node = dynamic_cast<Identifier*>(left.get())) {
+        expression->m_name = make_unique<Identifier>(*cast_node);
+    }
+    next_token();
+
+    expression->m_value = parse_expression(PRECEDENCE::LOWEST);
+
+    return expression;
+}
+
 unique_ptr<Expression> Parser::parse_boolean() {
     return make_unique<Boolean>(*m_cur_token, cur_token_is(TOKEN_TYPE::TRUE_));
 }
@@ -360,14 +479,14 @@ unique_ptr<BlockStatement> Parser::parse_block_statement() {
 }
 
 unique_ptr<Expression> Parser::parse_function_literal() {
-    auto lit = make_unique<FunctionLiteral>(*m_cur_token);
+    auto func = make_unique<FunctionLiteral>(*m_cur_token);
 
     if (!expect_peek(TOKEN_TYPE::LPAREN)) {
         return nullptr;
     }
 
     if (auto params = parse_function_parameters()) {
-        lit->m_parameters = std::move(params);
+        func->m_parameters = std::move(params);
     } else {
         return nullptr;
     }
@@ -376,9 +495,9 @@ unique_ptr<Expression> Parser::parse_function_literal() {
         return nullptr;
     }
 
-    lit->m_body = parse_block_statement();
+    func->m_body = parse_block_statement();
 
-    return lit;
+    return func;
 }
 
 unique_ptr<vector<unique_ptr<Identifier>>> Parser::parse_function_parameters() {
