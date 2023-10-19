@@ -12,7 +12,7 @@ namespace mirror {
 class IntegerLiteral : public Expression {
   public:
     unique_ptr<Token> m_token; // the token.IDENT token
-    int64_t m_value;
+    int64_t m_value = 0;
 
     string token_literal() { return m_token->m_literal; };
     string to_string() { return std::to_string(m_value); };

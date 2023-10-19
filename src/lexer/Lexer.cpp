@@ -145,8 +145,9 @@ unique_ptr<Token> Lexer::next_token() {
             tok = make_unique<Token>(Token::lookup_ident(literal), literal);
             return tok;
         } else if (is_digit(m_ch)) {
-            string literal = read_number();
-            tok = make_unique<Token>(TOKEN_TYPE::INT, literal);
+            auto [is_float, literal] = read_number();
+            tok = is_float ? make_unique<Token>(TOKEN_TYPE::FLOAT, literal) 
+                           : make_unique<Token>(TOKEN_TYPE::INT, literal);
             return tok;
         } else {
             tok = make_unique<Token>(TOKEN_TYPE::ILLEGAL, string(1, m_ch));
@@ -195,22 +196,52 @@ string Lexer::read_identifier() {
     return string(v.begin(), v.end());
 }
 
-string Lexer::read_number() {
-    vector<char> v;
+pair<bool, string> Lexer::read_number() {
+    bool is_float = false;
+    string num;
+
+    num = read_integer();
+
+    if (m_ch == '.') {
+        num += m_ch;
+        read_char();
+        is_float = true;
+
+        num += read_integer();
+    }
+    
+    if (m_ch == 'e' || m_ch == 'E') {
+        num += m_ch;
+        read_char();
+        is_float = true;
+
+        if (m_ch == '-') {
+            num += m_ch;
+            read_char();
+        }
+        
+        num += read_integer();
+    }
+
+    return std::make_pair(is_float, num);
+}
+
+string Lexer::read_integer() {
+    string num;
 
     while (is_digit(m_ch)) {
-        v.push_back(m_ch);
+        num += m_ch;
         read_char();
     }
 
-    return string(v.begin(), v.end());
+    return num;
 }
 
 string Lexer::read_string() {
     // a different implementation , not like read_number, ugly;
     std::string str;
 
-    for (int i = 0; i < 20; i++) {
+    while (true) {
         read_char();
         switch (m_ch)
         {
@@ -259,7 +290,6 @@ string Lexer::read_string() {
         default:
             str += m_ch; break;
         }
-
     }
 
     return str;

@@ -1,4 +1,4 @@
-add_executable(mirror main.cpp "ast/FunctionStatement.hpp" "ast/ForStatement.hpp")
+add_executable(mirror main.cpp)
 
 add_subdirectory(common)
 add_subdirectory(token)

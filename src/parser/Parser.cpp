@@ -13,6 +13,7 @@
 #include "IndexExpression.hpp"
 #include "InfixExpression.hpp"
 #include "IntegerLiteral.hpp"
+#include "FloatLiteral.hpp"
 #include "Lexer.hpp"
 #include "PrefixExpression.hpp"
 #include "StringLiteral.hpp"
@@ -32,6 +33,8 @@ void Parser::init() {
                     std::bind(&Parser::parse_identifier, this));
     register_prefix(TOKEN_TYPE::INT,
                     std::bind(&Parser::parse_integer_literal, this));
+    register_prefix(TOKEN_TYPE::FLOAT,
+                    std::bind(&Parser::parse_float_literal, this));
     register_prefix(TOKEN_TYPE::STRING,
                     std::bind(&Parser::parse_string_literal, this));
     register_prefix(TOKEN_TYPE::BANG,
@@ -331,6 +334,14 @@ unique_ptr<Expression> Parser::parse_integer_literal() {
 
     lit->m_value =
         static_cast<int64_t>(stoll(m_cur_token->m_literal, nullptr, 10));
+
+    return lit;
+}
+
+unique_ptr<Expression> mirror::Parser::parse_float_literal() {
+    auto lit = make_unique<FloatLiteral>(*m_cur_token);
+
+    lit->m_value = stod(m_cur_token->m_literal, nullptr);
 
     return lit;
 }

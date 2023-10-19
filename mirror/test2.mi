@@ -1,0 +1,58 @@
+
+
+// 一些数值运算测试
+
+fn test_num_op() { 
+	print("=================[test num op]=================\n");
+
+	let arr1 = [2, 3, 5.66, -2.33, 0, 1e3, 2.33e-1];
+	let arr2 = [1.414, 2.718, 3.14, -1, 10, 0.001, 0.233];
+
+	let n1 = len(arr1);
+	let n2 = len(arr2);
+	print("arr1 = ", arr1, ", n1 = ", n1, "\n");
+	print("arr2 = ", arr2, ", n2 = ", n2, "\n");
+	print("=======================\n");
+
+	for (let i = 0; i < n1; i = i + 1) {
+		for (let j = 0; j < n2; j = j + 1) {
+			print(arr1[i], " + ", arr2[j], " = ", arr1[i] + arr2[j], "\n");
+			print(arr1[i], " - ", arr2[j], " = ", arr1[i] - arr2[j], "\n");
+			print(arr1[i], " * ", arr2[j], " = ", arr1[i] * arr2[j], "\n");
+			print(arr1[i], " / ", arr2[j], " = ", arr1[i] / arr2[j], "\n");
+			print(arr1[i], " == ", arr2[j], " = ", arr1[i] == arr2[j], "\n");
+			print(arr1[i], " != ", arr2[j], " = ", arr1[i] != arr2[j], "\n");
+			print("=======================\n");
+		}
+	}
+
+}
+
+// 字符串运算测试
+fn test_str_op() {
+	print("=================[test str op]=================\n");
+
+	let arr1 = ["hello", "world", "mirror", "QAQ"];
+	let n1 = len(arr1);
+	print("arr1 = ", arr1, ", n1 = ", n1, "\n");
+
+	for (let i = 0; i < n1; i = i + 1) {
+		for (let j = 0; j < n1; j = j + 1) {
+			print(arr1[i], " +  ", arr1[j], " = ", arr1[i] +  arr1[j], "\n");
+			print(arr1[i], " == ", arr1[j], " = ", arr1[i] == arr1[j], "\n");
+			print(arr1[i], " != ", arr1[j], " = ", arr1[i] != arr1[j], "\n");
+			print("=======================\n");
+		}
+	}
+
+}
+
+
+
+fn main() {
+	test_num_op();
+	test_str_op();
+}
+
+
+main();

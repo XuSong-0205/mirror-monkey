@@ -108,6 +108,7 @@ class Parser {
 
     unique_ptr<Expression> parse_identifier();
     unique_ptr<Expression> parse_integer_literal();
+    unique_ptr<Expression> parse_float_literal();
 
     unique_ptr<Expression> parse_infix_expression(unique_ptr<Expression> exp);
     unique_ptr<Expression> parse_assign_expression(unique_ptr<Expression> left);

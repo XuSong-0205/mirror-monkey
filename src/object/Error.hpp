@@ -18,11 +18,6 @@ class Error : public Object {
 };
 }
 
-template<typename... Args>
-std::shared_ptr<Error> new_error(const std::string& fmt, Args&&... args) {
-    return format_error(args...);
-}
-
 namespace std {
     inline string to_string(const char* str) {
         return std::string(str);
@@ -30,7 +25,7 @@ namespace std {
 }
 
 template<typename... Args>
-std::shared_ptr<Error> format_error(Args&&... args) {
+std::shared_ptr<Error> new_error(Args&&... args) {
     auto ret = make_shared<Error>();
     std::string str;
     int temp[]{ (str += std::to_string(args), 0)... };

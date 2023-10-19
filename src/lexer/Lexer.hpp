@@ -32,7 +32,8 @@ public:
 	bool is_letter(char ch);
 	bool is_digit(char ch);
 	string read_identifier();
-	string read_number();
+	pair<bool, string> read_number();
+	string read_integer();
 	string read_string();
 	void read_annotation();
 };

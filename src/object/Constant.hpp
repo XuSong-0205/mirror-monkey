@@ -7,22 +7,22 @@ using namespace std;
 namespace mirror {
 namespace object {
 enum class OBJECT_TYPE {
-    NULL_OBJ,  //  "NULL"
-    ERROR_OBJ, //  "ERROR"
+    NULL_OBJ,       //  "NULL"
+    ERROR_OBJ,      //  "ERROR"
 
-    STRING_OBJ, // "STRING"
+    BOOLEAN_OBJ,    // "BOOLEAN"
+    INTEGER_OBJ,    // "INTEGER"
+    FLOAT_OBJ,      // "FLOAT"
+    STRING_OBJ,     // "STRING"
 
-    INTEGER_OBJ, //  "INTEGER"
-    BOOLEAN_OBJ, //  "BOOLEAN"
+    RETURN_VALUE_OBJ,   // "RETURN_VALUE"
 
-    RETURN_VALUE_OBJ, //  "RETURN_VALUE"
+    FUNCTION_OBJ,       // "FUNCTION"
 
-    FUNCTION_OBJ, //  "FUNCTION"
+    BUILTIN_OBJ,        // "BUILTIN"
 
-    BUILTIN_OBJ, // "BUILTIN"
-
-    ARRAY_OBJ, //= "ARRAY"
-    HASH_OBJ,  //= "HASH"
+    ARRAY_OBJ,          // "ARRAY"
+    HASH_OBJ,           // "HASH"
 };
 
 const string OBJECT_TYPE_VALUE[] = {
