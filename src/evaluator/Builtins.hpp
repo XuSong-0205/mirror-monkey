@@ -30,7 +30,7 @@ inline void init_len() {
     auto fn = make_shared<builtin_function>([](vector<shared_ptr<Object>> args) {
         if (args.size() != 1) {
             return shared_ptr<Object>(
-                new_error("sds", R"(wrong number of arguments. got=)",
+                new_error(R"(wrong number of arguments. got=)",
                           args.size(), ", want=1"));
         }
 
@@ -45,7 +45,7 @@ inline void init_len() {
         }
 
         return shared_ptr<Object>(
-            new_error("ss", "argument to `len` not supported, got ",
+            new_error("argument to `len` not supported, got ",
                       Object::object_type_value(args[0]->type()).c_str()));
     });
 
@@ -58,7 +58,7 @@ inline void init_first() {
 
         if (args.size() != 1) {
             return shared_ptr<Object>(
-                new_error("sds", R"(wrong number of arguments. got=)",
+                new_error(R"(wrong number of arguments. got=)",
                           args.size(), ", want=1"));
         }
 
@@ -66,7 +66,7 @@ inline void init_first() {
 
             auto type_value = Object::object_type_value(args[0]->type());
             return shared_ptr<Object>(
-                new_error("ss", R"(argument to `first` must be ARRAY, got )",
+                new_error(R"(argument to `first` must be ARRAY, got )",
                           type_value.c_str()));
         }
 
@@ -86,13 +86,13 @@ inline void init_last() {
     auto fn = make_shared<builtin_function>([](vector<shared_ptr<Object>> args) {
         if (args.size() != 1) {
             return shared_ptr<Object>(
-                new_error("sds", R"(wrong number of arguments. got=)",
+                new_error(R"(wrong number of arguments. got=)",
                           args.size(), ", want=1"));
         }
         if (args[0]->type() != object::OBJECT_TYPE::ARRAY_OBJ) {
             auto type_value = Object::object_type_value(args[0]->type());
             return shared_ptr<Object>(
-                new_error("ss", R"(argument to `last` must be ARRAY, got )",
+                new_error(R"(argument to `last` must be ARRAY, got )",
                           type_value.c_str()));
         }
 
@@ -113,13 +113,13 @@ inline void init_rest() {
     auto fn = make_shared<builtin_function>([](vector<shared_ptr<Object>> args) {
         if (args.size() != 1) {
             return shared_ptr<Object>(
-                new_error("sds", R"(wrong number of arguments. got=)",
+                new_error(R"(wrong number of arguments. got=)",
                           args.size(), ", want=1"));
         }
         if (args[0]->type() != object::OBJECT_TYPE::ARRAY_OBJ) {
             auto type_value = Object::object_type_value(args[0]->type());
             return shared_ptr<Object>(
-                new_error("ss", R"(argument to `rest` must be ARRAY, got )",
+                new_error(R"(argument to `rest` must be ARRAY, got )",
                           type_value.c_str()));
         }
 
@@ -148,14 +148,14 @@ inline void init_push() {
     
         if (args.size() != 2) {
             return shared_ptr<Object>(
-                new_error("sds", R"(wrong number of arguments. got=)",
+                new_error(R"(wrong number of arguments. got=)",
                           args.size(), ", want=2"));
         }
 
         if (args[0]->type() != object::OBJECT_TYPE::ARRAY_OBJ) {
             auto type_value = Object::object_type_value(args[0]->type());
             return shared_ptr<Object>(
-                new_error("ss", R"(argument to `push` must be ARRAY, got )",
+                new_error(R"(argument to `push` must be ARRAY, got )",
                           type_value.c_str()));
         }
 

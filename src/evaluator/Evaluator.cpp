@@ -25,6 +25,8 @@
 #include "AssignExpression.hpp"
 #include "Integer.hpp"
 #include "IntegerLiteral.hpp"
+#include "Float.hpp"
+#include "FloatLiteral.hpp"
 #include "LetStatement.hpp"
 #include "Null.hpp"
 #include "Object.hpp"
@@ -100,6 +102,10 @@ shared_ptr<Object> Evaluator::eval(Node *node, Environment *env) {
         return make_shared<Integer>(cast_node->m_value);
     }
 
+    if (auto cast_node = dynamic_cast<FloatLiteral*>(node)) {
+        return make_shared<Float>(cast_node->m_value);
+    }
+
     if (auto cast_node = dynamic_cast<t_ast_Boolean *>(node)) {
         return native_bool_to_boolean_object(cast_node->m_value);
     }
@@ -128,7 +134,8 @@ shared_ptr<Object> Evaluator::eval(Node *node, Environment *env) {
             return right;
         }
 
-        return eval_infix_expression(cast_node->m_operator, left.get(),
+        return eval_infix_expression(cast_node->m_operator, 
+                                     left.get(),
                                      right.get());
     }
 
@@ -231,8 +238,7 @@ shared_ptr<Object> Evaluator::eval_prefix_expression(string op, Object *right) {
         return eval_minus_prefix_operator_expression(right);
     }
 
-    return new_error("sss", "unknown operator: ", op.c_str(),
-                     Object::object_type_value(right->type()).c_str());
+    return error_prefix_op(op, right);
 }
 
 shared_ptr<Object> Evaluator::eval_bang_operator_expression(Object *right) {
@@ -249,27 +255,36 @@ shared_ptr<Object> Evaluator::eval_bang_operator_expression(Object *right) {
 
 shared_ptr<Object>
 Evaluator::eval_minus_prefix_operator_expression(Object *right) {
-    if (right->type() != OBJECT_TYPE::INTEGER_OBJ) {
-        return new_error("ss", "unknown operator: -",
-                         Object::object_type_value(right->type()).c_str());
+    
+    if (right->type() == OBJECT_TYPE::INTEGER_OBJ) {
+        auto value = static_cast<Integer*>(right)->m_value;
+        return make_shared<Integer>(-value);
     }
-    auto value = static_cast<Integer *>(right)->m_value;
-    return make_shared<Integer>(-value);
+
+    if (right->type() == OBJECT_TYPE::FLOAT_OBJ) {
+        auto value = static_cast<Float*>(right)->m_value;
+        return make_shared<Float>(-value);
+    }
+
+    return error_prefix_op("-", right);
 }
 
-shared_ptr<Object> Evaluator::eval_infix_expression(string op, Object *left,
+shared_ptr<Object> Evaluator::eval_infix_expression(string op, 
+                                                    Object *left,
                                                     Object *right) {
-    if (left->type() == OBJECT_TYPE::BOOLEAN_OBJ &&
+    if (left->type()  == OBJECT_TYPE::BOOLEAN_OBJ &&
         right->type() == OBJECT_TYPE::BOOLEAN_OBJ) {
         return eval_bool_infix_expression(op, left, right);
     }
 
-    if (left->type() == OBJECT_TYPE::INTEGER_OBJ &&
-        right->type() == OBJECT_TYPE::INTEGER_OBJ) {
-        return eval_integer_infix_expression(op, left, right);
+    if ((left->type()  == OBJECT_TYPE::INTEGER_OBJ || 
+         left->type()  == OBJECT_TYPE::FLOAT_OBJ)  &&
+        (right->type() == OBJECT_TYPE::INTEGER_OBJ || 
+         right->type() == OBJECT_TYPE::FLOAT_OBJ)) {
+        return eval_number_infix_expression(op, left, right);
     }
 
-    if (left->type() == OBJECT_TYPE::STRING_OBJ &&
+    if (left->type()  == OBJECT_TYPE::STRING_OBJ &&
         right->type() == OBJECT_TYPE::STRING_OBJ) {
         return eval_string_infix_expression(op, left, right);
     }
@@ -291,17 +306,15 @@ shared_ptr<Object> Evaluator::eval_infix_expression(string op, Object *left,
         auto err_str = Object::object_type_value(left->type()) + " " + op +
                        " " + Object::object_type_value(right->type());
 
-        return new_error("ss", "type mismatch: ", err_str.c_str());
+        return new_error("type mismatch: ", err_str.c_str());
     }
 
-    auto err_str = Object::object_type_value(left->type()) + " " + op + " " +
-                   Object::object_type_value(right->type());
-    return new_error("ss", "unknown operator: ", err_str.c_str());
+    return error_binary_op(op, left, right);
 }
 
 shared_ptr<Object> Evaluator::eval_bool_infix_expression(string op,
-                                                            Object* left,
-                                                            Object* right) {
+                                                         Object* left,
+                                                         Object* right) {
     auto left_value  = static_cast<Boolean*>(left)->m_value;
     auto right_value = static_cast<Boolean*>(right)->m_value;
 
@@ -320,7 +333,67 @@ shared_ptr<Object> Evaluator::eval_bool_infix_expression(string op,
     if (op == "||") {
         return native_bool_to_boolean_object(left_value || right_value);
     }
- 
+
+    return error_binary_op(op, left, right);
+}
+
+shared_ptr<Object> Evaluator::eval_number_infix_expression(string op,
+                                                           Object* left,
+                                                           Object* right) {
+    if (left->type()  == OBJECT_TYPE::INTEGER_OBJ &&
+        right->type() == OBJECT_TYPE::INTEGER_OBJ) {
+        return eval_integer_infix_expression(op, left, right);
+    }
+
+    auto left_value = left->type() == OBJECT_TYPE::INTEGER_OBJ
+                        ? static_cast<Integer*>(left)->m_value
+                        : static_cast<Float*>(left)->m_value;
+
+    auto right_value = right->type() == OBJECT_TYPE::INTEGER_OBJ
+                        ? static_cast<Integer*>(right)->m_value
+                        : static_cast<Float*>(right)->m_value;
+
+    if (op == "+") {
+        return make_shared<Float>(left_value + right_value);
+    }
+
+    if (op == "-") {
+        return make_shared<Float>(left_value - right_value);
+    }
+
+    if (op == "*") {
+        return make_shared<Float>(left_value * right_value);
+    }
+
+    if (op == "/") {
+        return make_shared<Float>(left_value / right_value);
+    }
+
+    if (op == "<") {
+        return native_bool_to_boolean_object(left_value < right_value);
+    }
+
+    if (op == ">") {
+        return native_bool_to_boolean_object(left_value > right_value);
+    }
+
+    if (op == "<=") {
+        return native_bool_to_boolean_object(left_value <= right_value);
+    }
+
+    if (op == ">=") {
+        return native_bool_to_boolean_object(left_value >= right_value);
+    }
+
+    if (op == "==") {
+        return native_bool_to_boolean_object(left_value == right_value);
+    }
+
+    if (op == "!=") {
+        return native_bool_to_boolean_object(left_value != right_value);
+    }
+
+    return error_binary_op(op, left, right);
 }
 
 shared_ptr<Object> Evaluator::eval_integer_infix_expression(string op,
@@ -393,10 +466,7 @@ shared_ptr<Object> Evaluator::eval_integer_infix_expression(string op,
         return native_bool_to_boolean_object(left_value || right_value);
     }
 
-    auto err_str = Object::object_type_value(left->type()) + " " + op + " " +
-                   Object::object_type_value(right->type());
-
-    return new_error("ss", "unknown operator: ", err_str.c_str());
+    return error_binary_op(op, left, right);
 }
 
 shared_ptr<Object> Evaluator::native_bool_to_boolean_object(bool input) {
@@ -499,7 +569,7 @@ shared_ptr<Object> Evaluator::eval_identifier(Identifier *node,
         return it->second;
     }
 
-    return new_error("ss", "identifier not found: ", node->m_value.c_str());
+    return new_error("identifier not found: ", node->m_value.c_str());
 }
 
 vector<shared_ptr<Object>>
@@ -566,7 +636,7 @@ shared_ptr<Object> Evaluator::apply_function(shared_ptr<Object> fn,
         }
     }
 
-    return new_error("ss", "not a function: ",
+    return new_error("not a function: ",
                      Object::object_type_value(fn->type()).c_str());
 }
 
@@ -574,16 +644,22 @@ shared_ptr<Object> Evaluator::eval_string_infix_expression(string op,
                                                            Object *left,
                                                            Object *right) {
 
-    if (op != "+") {
-        auto err_str = Object::object_type_value(left->type()) + " " + op +
-                       " " + Object::object_type_value(right->type());
-        return new_error("ss", "unknown operator: ", err_str.c_str());
+    auto left_value  = static_cast<String*>(left)->m_value;
+    auto right_value = static_cast<String*>(right)->m_value;
+
+    if (op == "+") {
+        return make_unique<String>(left_value + right_value);
     }
 
-    auto left_val = static_cast<String *>(left)->m_value;
-    auto right_val = static_cast<String *>(right)->m_value;
+    if (op == "==") {
+        return native_bool_to_boolean_object(left_value == right_value);
+    }
 
-    return make_shared<String>(left_val + right_val);
+    if (op == "!=") {
+        return native_bool_to_boolean_object(left_value != right_value);
+    }
+
+    return error_binary_op(op, left, right);
 }
 
 shared_ptr<Object> Evaluator::eval_index_expression(Object *left,
@@ -601,7 +677,7 @@ shared_ptr<Object> Evaluator::eval_index_expression(Object *left,
     }
 
 
-    return new_error("ss", "index operator not supported: ",
+    return new_error("index operator not supported: ",
                      Object::object_type_value(left->type()).c_str());
 }
 
@@ -632,7 +708,7 @@ shared_ptr<Object> Evaluator::eval_hash_literal(HashLiteral *node,
 
         auto hash_key = dynamic_cast<Hashable *>(key.get());
         if (!hash_key) {
-			new_error("ss", "unusable as hash key: ", Object::object_type_value(key->type()).c_str());
+			new_error("unusable as hash key: ", Object::object_type_value(key->type()).c_str());
         }
 
         auto value = eval(it->second.get(), env);
@@ -665,7 +741,7 @@ shared_ptr<Object> Evaluator::eval_hash_index_expression(Object *hash,
     auto hash_object = static_cast<Hash *>(hash);
     auto key = dynamic_cast<Hashable *>(index);
     if (!key) {
-        return new_error("ss", "unusable as hash key: ",
+        return new_error("unusable as hash key: ",
                          Object::object_type_value(index->type()).c_str());
     }
 
@@ -675,4 +751,26 @@ shared_ptr<Object> Evaluator::eval_hash_index_expression(Object *hash,
     }
 
     return pair->m_value;
+}
+
+shared_ptr<Object> Evaluator::error_binary_op(string op, Object* left, Object* right) {
+
+    auto err_str = Object::object_type_value(left->type()) + " " + op + " " +
+                   Object::object_type_value(right->type());
+
+    return new_error("unknown operator: ", err_str.c_str());
+}
+
+shared_ptr<Object> Evaluator::error_prefix_op(string op, Object* right) {
+
+    auto err_str = op + Object::object_type_value(right->type());
+
+    return new_error("unknown operator: ", err_str.c_str());
+}
+
+shared_ptr<Object> Evaluator::error_suffix_op(string op, Object* left) {
+
+    auto err_str = Object::object_type_value(left->type()) + op;
+
+    return new_error("unknown operator: ", err_str.c_str());
 }

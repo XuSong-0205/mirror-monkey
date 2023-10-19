@@ -12,8 +12,9 @@ enum class TOKEN_TYPE {
     EOF_,       // "EOF"
 
     // Identifiers + literals
-    IDENT,      // "IDENT" // add, foobar, x, y, ...
-    INT,        // "INT"   // 1343456
+    IDENT,      // "IDENT"  // add, foobar, x, y, ...
+    INT,        // "INT"    // 1343456
+    FLOAT,      // "FLOAT"  // 3.1415926
     STRING,     // "foobar"
 
     // Operators
@@ -69,6 +70,7 @@ const string TOKEN_TYPE_VALUE[] = {
     // Identifiers + literals
     "IDENT",    // add, foobar, x, y, ...,
     "INT",      // 1343456,
+    "FLOAT",    // 3.1415926
     "STRING",   // "foobar"
 
     // Operators

@@ -31,6 +31,7 @@ class Evaluator {
     shared_ptr<Object> eval_infix_expression(string op, Object *left, Object *right);
     shared_ptr<Object> eval_bool_infix_expression(string op, Object* left, Object* right);
     shared_ptr<Object> eval_integer_infix_expression(string op, Object *left, Object *right);
+    shared_ptr<Object> eval_number_infix_expression(string op, Object* left, Object* right);
     shared_ptr<Object> native_bool_to_boolean_object(bool input);
     shared_ptr<Object> eval_if_expression(IfExpression *ie, Environment *env);
     shared_ptr<Object> eval_identifier(Identifier *node, Environment *env);
@@ -51,6 +52,11 @@ class Evaluator {
 	shared_ptr<Object> eval_array_index_expression(Object * left, Object * index);
 	shared_ptr<Object> eval_hash_literal(HashLiteral* node, Environment* env);
 	shared_ptr<Object> eval_hash_index_expression(Object *hash, Object *index); 
+
+private:
+    shared_ptr<Object> error_binary_op(string op, Object* left, Object* right);
+    shared_ptr<Object> error_prefix_op(string op, Object* right);
+    shared_ptr<Object> error_suffix_op(string op, Object* left);
 };
 }
 #endif /* EVALUATOR_HPP */
